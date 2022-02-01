@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 use std::ptr;
 use crate::tree::NodeColor::BLACK;
 
@@ -213,6 +214,22 @@ impl<T> Drop for RedBlackTreeNode<T> {
     }
 }
 
+impl<T: Display> Display for RedBlackTreeNode<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(format!("{{value: {} ", self.value).as_str());
+        unsafe {
+            if !self.left.is_null() {
+                f.write_str(format!("left: {} ", self.left.as_ref().unwrap()).as_str());
+            }
+            if !self.right.is_null() {
+                f.write_str(format!("right: {} ", self.right.as_ref().unwrap()).as_str());
+            }
+        }
+        f.write_str("}");
+        Ok(())
+    }
+}
+
 impl<T> RedBlackTreeNode<T> {
 
     fn new(value: T, color: NodeColor) -> RedBlackTreeNode<T> {
@@ -296,6 +313,17 @@ impl<T> RedBlackTreeNode<T> {
 pub struct RedBlackTree<T> {
     root: *mut RedBlackTreeNode<T>,
     size: usize
+}
+
+impl<T: Display> Display for RedBlackTree<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        if !self.root.is_null() {
+            unsafe {
+                f.write_str(format!("{}", self.root.as_ref().unwrap()).as_str());
+            }
+        }
+        Ok(())
+    }
 }
 
 impl<T> Drop for RedBlackTree<T> {
