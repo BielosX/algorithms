@@ -200,6 +200,19 @@ struct RedBlackTreeNode<T> {
     color: NodeColor
 }
 
+impl<T> Drop for RedBlackTreeNode<T> {
+    fn drop(&mut self) {
+        unsafe {
+            if !self.right.is_null() {
+                Box::from_raw(self.right);
+            }
+            if !self.left.is_null() {
+                Box::from_raw(self.left);
+            }
+        }
+    }
+}
+
 impl<T> RedBlackTreeNode<T> {
 
     fn new(value: T, color: NodeColor) -> RedBlackTreeNode<T> {
@@ -283,6 +296,16 @@ impl<T> RedBlackTreeNode<T> {
 pub struct RedBlackTree<T> {
     root: *mut RedBlackTreeNode<T>,
     size: usize
+}
+
+impl<T> Drop for RedBlackTree<T> {
+    fn drop(&mut self) {
+        unsafe {
+            if !self.root.is_null() {
+                Box::from_raw(self.root);
+            }
+        }
+    }
 }
 
 impl<T: Ord + Clone> RedBlackTree<T> {
