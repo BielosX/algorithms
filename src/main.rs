@@ -3,8 +3,8 @@ mod heap;
 mod list;
 mod tree;
 
-use std::io::{stdin, stdout, Write};
 use rand::Rng;
+use std::io::{stdin, stdout, Write};
 
 fn main() {
     let mut rng = rand::thread_rng();

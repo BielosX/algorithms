@@ -1,6 +1,6 @@
+use crate::tree::NodeColor::BLACK;
 use std::fmt::{Display, Formatter};
 use std::ptr;
-use crate::tree::NodeColor::BLACK;
 
 struct BinaryTreeNode<T> {
     value: T,
@@ -28,21 +28,21 @@ impl<T> BinaryTreeNode<T> {
             value,
             left: ptr::null_mut(),
             right: ptr::null_mut(),
-            parent: ptr::null_mut()
+            parent: ptr::null_mut(),
         }
     }
 }
 
 pub struct BinaryTree<T> {
     root: *mut BinaryTreeNode<T>,
-    size: usize
+    size: usize,
 }
 
 impl<T: Ord + Clone> BinaryTree<T> {
     pub fn new() -> BinaryTree<T> {
         BinaryTree {
             root: ptr::null_mut(),
-            size: 0
+            size: 0,
         }
     }
 
@@ -117,7 +117,7 @@ impl<T> Drop for BinaryTree<T> {
 
 pub struct BinaryTreeDfsPreorderIterator<'a, T> {
     tree: &'a BinaryTree<T>,
-    curr: *mut BinaryTreeNode<T>
+    curr: *mut BinaryTreeNode<T>,
 }
 
 impl<'a, T> BinaryTreeDfsPreorderIterator<'a, T> {
@@ -126,12 +126,12 @@ impl<'a, T> BinaryTreeDfsPreorderIterator<'a, T> {
             if tree.root.is_null() {
                 BinaryTreeDfsPreorderIterator {
                     tree,
-                    curr: ptr::null_mut()
+                    curr: ptr::null_mut(),
                 }
             } else {
                 BinaryTreeDfsPreorderIterator {
                     tree,
-                    curr: tree.root
+                    curr: tree.root,
                 }
             }
         }
@@ -144,7 +144,11 @@ impl<'a, T> Iterator for BinaryTreeDfsPreorderIterator<'a, T> {
     fn next(&mut self) -> Option<Self::Item> {
         let mut result = Option::None;
         unsafe {
-            result = self.curr.as_ref().map(|a| (&a.value as *const T).as_ref()).flatten();
+            result = self
+                .curr
+                .as_ref()
+                .map(|a| (&a.value as *const T).as_ref())
+                .flatten();
             let mut found_next = false;
             let mut curr = self.curr;
             let mut prev = curr;
@@ -190,7 +194,7 @@ impl<'a, T> Iterator for BinaryTreeDfsPreorderIterator<'a, T> {
 #[derive(Eq, PartialEq, Copy, Clone)]
 enum NodeColor {
     RED,
-    BLACK
+    BLACK,
 }
 
 struct RedBlackTreeNode<T> {
@@ -198,7 +202,7 @@ struct RedBlackTreeNode<T> {
     left: *mut RedBlackTreeNode<T>,
     right: *mut RedBlackTreeNode<T>,
     parent: *mut RedBlackTreeNode<T>,
-    color: NodeColor
+    color: NodeColor,
 }
 
 impl<T> Drop for RedBlackTreeNode<T> {
@@ -231,14 +235,13 @@ impl<T: Display> Display for RedBlackTreeNode<T> {
 }
 
 impl<T> RedBlackTreeNode<T> {
-
     fn new(value: T, color: NodeColor) -> RedBlackTreeNode<T> {
         RedBlackTreeNode {
             left: ptr::null_mut(),
             right: ptr::null_mut(),
             parent: ptr::null_mut(),
             color,
-            value
+            value,
         }
     }
 
@@ -254,9 +257,7 @@ impl<T> RedBlackTreeNode<T> {
         if self.parent.is_null() {
             NodeColor::BLACK
         } else {
-            unsafe {
-                (*self.parent).color
-            }
+            unsafe { (*self.parent).color }
         }
     }
 
@@ -276,15 +277,11 @@ impl<T> RedBlackTreeNode<T> {
     }
 
     fn parent_parent_right(&self) -> Option<*mut RedBlackTreeNode<T>> {
-        unsafe {
-            self.parent_parent().map(|p| (*p).right)
-        }
+        unsafe { self.parent_parent().map(|p| (*p).right) }
     }
 
     fn parent_parent_left(&self) -> Option<*mut RedBlackTreeNode<T>> {
-        unsafe {
-            self.parent_parent().map(|p| (*p).left)
-        }
+        unsafe { self.parent_parent().map(|p| (*p).left) }
     }
 
     fn is_left_child(&self) -> bool {
@@ -293,7 +290,11 @@ impl<T> RedBlackTreeNode<T> {
         } else {
             let self_ptr = self as *const RedBlackTreeNode<T>;
             unsafe {
-                if self_ptr == (*self.parent).left {true} else {false}
+                if self_ptr == (*self.parent).left {
+                    true
+                } else {
+                    false
+                }
             }
         }
     }
@@ -304,7 +305,11 @@ impl<T> RedBlackTreeNode<T> {
         } else {
             let self_ptr = self as *const RedBlackTreeNode<T>;
             unsafe {
-                if self_ptr == (*self.parent).right {true} else {false}
+                if self_ptr == (*self.parent).right {
+                    true
+                } else {
+                    false
+                }
             }
         }
     }
@@ -312,7 +317,7 @@ impl<T> RedBlackTreeNode<T> {
 
 pub struct RedBlackTree<T> {
     root: *mut RedBlackTreeNode<T>,
-    size: usize
+    size: usize,
 }
 
 impl<T: Display> Display for RedBlackTree<T> {
@@ -340,13 +345,15 @@ impl<T: Ord + Clone> RedBlackTree<T> {
     pub fn new() -> RedBlackTree<T> {
         RedBlackTree {
             root: ptr::null_mut(),
-            size: 0
+            size: 0,
         }
     }
 
-    unsafe fn update_parent_son(&mut self,
-                                node: *mut RedBlackTreeNode<T>,
-                                new_son: *mut RedBlackTreeNode<T>) {
+    unsafe fn update_parent_son(
+        &mut self,
+        node: *mut RedBlackTreeNode<T>,
+        new_son: *mut RedBlackTreeNode<T>,
+    ) {
         if (*node).parent.is_null() {
             self.root = new_son;
         } else if (*node).is_left_child() {
@@ -388,13 +395,15 @@ impl<T: Ord + Clone> RedBlackTree<T> {
         }
     }
 
-    unsafe fn fixup(&mut self,
-                    curr: *mut RedBlackTreeNode<T>,
-                    parent_parent: *mut RedBlackTreeNode<T>,
-                    uncle: *mut RedBlackTreeNode<T>,
-                    side_check: fn(*mut RedBlackTreeNode<T>) -> bool,
-                    node_rotation: unsafe fn(&mut RedBlackTree<T>, *mut RedBlackTreeNode<T>),
-                    parent_parent_rotation: unsafe fn(&mut RedBlackTree<T>, *mut RedBlackTreeNode<T>)) -> *mut RedBlackTreeNode<T> {
+    unsafe fn fixup(
+        &mut self,
+        curr: *mut RedBlackTreeNode<T>,
+        parent_parent: *mut RedBlackTreeNode<T>,
+        uncle: *mut RedBlackTreeNode<T>,
+        side_check: fn(*mut RedBlackTreeNode<T>) -> bool,
+        node_rotation: unsafe fn(&mut RedBlackTree<T>, *mut RedBlackTreeNode<T>),
+        parent_parent_rotation: unsafe fn(&mut RedBlackTree<T>, *mut RedBlackTreeNode<T>),
+    ) -> *mut RedBlackTreeNode<T> {
         let mut current = curr;
         if RedBlackTree::node_color(uncle) == NodeColor::RED {
             (*(*current).parent).color = NodeColor::BLACK;
@@ -422,20 +431,24 @@ impl<T: Ord + Clone> RedBlackTree<T> {
                 if let Some(parent_parent) = (*current).parent_parent() {
                     if (*(*current).parent).is_left_child() {
                         let mut uncle = (*parent_parent).right;
-                        self.fixup(current,
-                                   parent_parent,
-                                   uncle,
-                                   |p| (*p).is_right_child(),
-                                   RedBlackTree::left_rotate,
-                                   RedBlackTree::right_rotate);
+                        self.fixup(
+                            current,
+                            parent_parent,
+                            uncle,
+                            |p| (*p).is_right_child(),
+                            RedBlackTree::left_rotate,
+                            RedBlackTree::right_rotate,
+                        );
                     } else {
                         let mut uncle = (*parent_parent).left;
-                        self.fixup(current,
-                                   parent_parent,
-                                   uncle,
-                                   |p| (*p).is_left_child(),
-                                   RedBlackTree::right_rotate,
-                                   RedBlackTree::left_rotate);
+                        self.fixup(
+                            current,
+                            parent_parent,
+                            uncle,
+                            |p| (*p).is_left_child(),
+                            RedBlackTree::right_rotate,
+                            RedBlackTree::left_rotate,
+                        );
                     }
                 }
             }

@@ -128,7 +128,7 @@ struct FibonacciHeapNode<T> {
     right: *mut FibonacciHeapNode<T>,
     parent: *mut FibonacciHeapNode<T>,
     child: *mut FibonacciHeapNode<T>,
-    mark: bool
+    mark: bool,
 }
 
 impl<T> FibonacciHeapNode<T> {
@@ -140,21 +140,21 @@ impl<T> FibonacciHeapNode<T> {
             right: ptr::null_mut(),
             parent: ptr::null_mut(),
             child: ptr::null_mut(),
-            mark: false
+            mark: false,
         }
     }
 }
 
 pub struct FibonacciHeap<T> {
     size: usize,
-    min: *mut FibonacciHeapNode<T>
+    min: *mut FibonacciHeapNode<T>,
 }
 
 impl<T: Ord + Clone + Display> FibonacciHeap<T> {
     pub fn new() -> FibonacciHeap<T> {
         FibonacciHeap {
             size: 0,
-            min: ptr::null_mut()
+            min: ptr::null_mut(),
         }
     }
 
@@ -205,7 +205,10 @@ impl<T: Ord + Clone + Display> FibonacciHeap<T> {
         result
     }
 
-    unsafe fn heap_link(future_son: *mut FibonacciHeapNode<T>, future_parent: *mut FibonacciHeapNode<T>) {
+    unsafe fn heap_link(
+        future_son: *mut FibonacciHeapNode<T>,
+        future_parent: *mut FibonacciHeapNode<T>,
+    ) {
         let prev = (*future_son).left;
         let next = (*future_son).right;
         (*prev).right = next;
@@ -266,7 +269,7 @@ impl<T: Ord + Clone + Display> FibonacciHeap<T> {
                         (*self.min).right = self.min;
                         (*self.min).left = self.min;
                     } else {
-                       let right = (*self.min).right;
+                        let right = (*self.min).right;
                         (*self.min).right = degrees[i];
                         (*degrees[i]).right = right;
                         (*right).left = degrees[i];
