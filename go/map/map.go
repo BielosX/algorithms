@@ -239,6 +239,21 @@ func (hashMap *HashMap[K, V]) usedBuckets() int {
 	return counter
 }
 
+func (hashMap *HashMap[K, V]) calculateNewBuckets() {
+	newBucketsNumber := hashMap.GetBucketsNumber() << 1
+	newBuckets := make([]hashMapBucket[K, V], newBucketsNumber)
+	for _, bucket := range hashMap.buckets {
+		for _, bucketEntry := range bucket.entries {
+			newIndex := bucketEntry.key.Hash() % uint64(newBucketsNumber)
+			newSlice := append(newBuckets[newIndex].entries, bucketEntry)
+			newBuckets[newIndex] = hashMapBucket[K, V]{
+				entries: newSlice,
+			}
+		}
+	}
+	hashMap.buckets = newBuckets
+}
+
 func (hashMap *HashMap[K, V]) Insert(key K, value V) {
 	index := key.Hash() % uint64(hashMap.GetBucketsNumber())
 	entry := hashMapEntry[K, V]{
@@ -250,18 +265,7 @@ func (hashMap *HashMap[K, V]) Insert(key K, value V) {
 		entries: slice,
 	}
 	if hashMap.usedBuckets() == hashMap.GetBucketsNumber() {
-		newBucketsNumber := hashMap.GetBucketsNumber() << 1
-		newBuckets := make([]hashMapBucket[K, V], newBucketsNumber)
-		for _, bucket := range hashMap.buckets {
-			for _, bucketEntry := range bucket.entries {
-				newIndex := bucketEntry.key.Hash() % uint64(newBucketsNumber)
-				newSlice := append(newBuckets[newIndex].entries, bucketEntry)
-				newBuckets[newIndex] = hashMapBucket[K, V]{
-					entries: newSlice,
-				}
-			}
-		}
-		hashMap.buckets = newBuckets
+		hashMap.calculateNewBuckets()
 	}
 }
 
