@@ -46,3 +46,32 @@ func TestHashMapContains(t *testing.T) {
 
 	assert.True(t, uat.Contains("Test"))
 }
+
+type TestHashableInt struct {
+	value int
+	hash  uint64
+}
+
+func NewTestHashableInt(value int, hash uint64) TestHashableInt {
+	return TestHashableInt{
+		value: value,
+		hash:  hash,
+	}
+}
+
+func (h TestHashableInt) Hash() uint64 {
+	return h.hash
+}
+
+func TestHashMapIncreaseNumberOfBucketsWhenAllUsed(t *testing.T) {
+	uat := NewHashMapWithBucketsNumber[TestHashableInt, int](2)
+
+	firstKey := NewTestHashableInt(5, 0)
+	secondKey := NewTestHashableInt(4, 1)
+	uat.Insert(firstKey, 7)
+	uat.Insert(secondKey, 8)
+
+	assert.Equal(t, 4, uat.GetBucketsNumber())
+	assert.Equal(t, 7, *uat.Get(firstKey))
+	assert.Equal(t, 8, *uat.Get(secondKey))
+}

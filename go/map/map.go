@@ -214,15 +214,33 @@ type HashMap[K Hashable, V any] struct {
 	buckets []hashMapBucket[K, V]
 }
 
-func NewHashMap[K Hashable, V any]() HashMap[K, V] {
-	buckets := make([]hashMapBucket[K, V], 8)
+func NewHashMapWithBucketsNumber[K Hashable, V any](bucketSize int) HashMap[K, V] {
+	buckets := make([]hashMapBucket[K, V], bucketSize)
 	return HashMap[K, V]{
 		buckets: buckets,
 	}
 }
 
+func NewHashMap[K Hashable, V any]() HashMap[K, V] {
+	return NewHashMapWithBucketsNumber[K, V](8)
+}
+
+func (hashMap *HashMap[K, V]) GetBucketsNumber() int {
+	return len(hashMap.buckets)
+}
+
+func (hashMap *HashMap[K, V]) usedBuckets() int {
+	counter := 0
+	for _, item := range hashMap.buckets {
+		if len(item.entries) > 0 {
+			counter++
+		}
+	}
+	return counter
+}
+
 func (hashMap *HashMap[K, V]) Insert(key K, value V) {
-	index := key.Hash() % uint64(len(hashMap.buckets))
+	index := key.Hash() % uint64(hashMap.GetBucketsNumber())
 	entry := hashMapEntry[K, V]{
 		key:   key,
 		value: value,
@@ -231,10 +249,24 @@ func (hashMap *HashMap[K, V]) Insert(key K, value V) {
 	hashMap.buckets[index] = hashMapBucket[K, V]{
 		entries: slice,
 	}
+	if hashMap.usedBuckets() == hashMap.GetBucketsNumber() {
+		newBucketsNumber := hashMap.GetBucketsNumber() << 1
+		newBuckets := make([]hashMapBucket[K, V], newBucketsNumber)
+		for _, bucket := range hashMap.buckets {
+			for _, bucketEntry := range bucket.entries {
+				newIndex := bucketEntry.key.Hash() % uint64(newBucketsNumber)
+				newSlice := append(newBuckets[newIndex].entries, bucketEntry)
+				newBuckets[newIndex] = hashMapBucket[K, V]{
+					entries: newSlice,
+				}
+			}
+		}
+		hashMap.buckets = newBuckets
+	}
 }
 
 func (hashMap *HashMap[K, V]) Get(key K) *V {
-	index := key.Hash() % uint64(len(hashMap.buckets))
+	index := key.Hash() % uint64(hashMap.GetBucketsNumber())
 	entries := hashMap.buckets[index].entries
 	for _, item := range entries {
 		if item.key == key {
