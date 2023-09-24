@@ -24,3 +24,25 @@ func TestFindInsertedValue(t *testing.T) {
 	assert.Equal(t, "Test3", *uat.Get(7))
 	assert.Equal(t, "Test4", *uat.Get(1))
 }
+
+func TestHashMapEmpty(t *testing.T) {
+	uat := NewHashMap[HashableString, string]()
+
+	assert.Empty(t, uat.Get("Test"))
+}
+
+func TestHashMapGetReturnsInsertedValue(t *testing.T) {
+	uat := NewHashMap[HashableString, int]()
+
+	uat.Insert("Test", 5)
+
+	assert.Equal(t, 5, *uat.Get("Test"))
+}
+
+func TestHashMapContains(t *testing.T) {
+	uat := NewHashMap[HashableString, int]()
+
+	uat.Insert("Test", 5)
+
+	assert.True(t, uat.Contains("Test"))
+}

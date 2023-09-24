@@ -1,6 +1,10 @@
 package _map
 
-import "cmp"
+import (
+	"cmp"
+	"encoding/binary"
+	"hash/maphash"
+)
 
 type Color int8
 
@@ -175,4 +179,71 @@ func (tree *TreeMap[K, V]) Get(key K) *V {
 	} else {
 		return nil
 	}
+}
+
+type HashableInt int
+type HashableString string
+
+type Hashable interface {
+	comparable
+	Hash() uint64
+}
+
+var seed = maphash.MakeSeed()
+
+func (h HashableInt) Hash() uint64 {
+	var buffer []byte
+	binary.LittleEndian.PutUint64(buffer, uint64(h))
+	return maphash.Bytes(seed, buffer)
+}
+
+func (h HashableString) Hash() uint64 {
+	return maphash.Bytes(seed, []byte(h))
+}
+
+type hashMapEntry[K Hashable, V any] struct {
+	key   K
+	value V
+}
+
+type hashMapBucket[K Hashable, V any] struct {
+	entries []hashMapEntry[K, V]
+}
+
+type HashMap[K Hashable, V any] struct {
+	buckets []hashMapBucket[K, V]
+}
+
+func NewHashMap[K Hashable, V any]() HashMap[K, V] {
+	buckets := make([]hashMapBucket[K, V], 8)
+	return HashMap[K, V]{
+		buckets: buckets,
+	}
+}
+
+func (hashMap *HashMap[K, V]) Insert(key K, value V) {
+	index := key.Hash() % uint64(len(hashMap.buckets))
+	entry := hashMapEntry[K, V]{
+		key:   key,
+		value: value,
+	}
+	slice := append(hashMap.buckets[index].entries, entry)
+	hashMap.buckets[index] = hashMapBucket[K, V]{
+		entries: slice,
+	}
+}
+
+func (hashMap *HashMap[K, V]) Get(key K) *V {
+	index := key.Hash() % uint64(len(hashMap.buckets))
+	entries := hashMap.buckets[index].entries
+	for _, item := range entries {
+		if item.key == key {
+			return &item.value
+		}
+	}
+	return nil
+}
+
+func (hashMap *HashMap[K, V]) Contains(key K) bool {
+	return hashMap.Get(key) != nil
 }
