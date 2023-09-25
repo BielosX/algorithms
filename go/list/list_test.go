@@ -86,3 +86,125 @@ func TestGetFirstReturnsNilWhenListIsEmpty(t *testing.T) {
 
 	assert.Empty(t, value)
 }
+
+func TestLinkedList_AddFirst(t *testing.T) {
+	uat := NewLinkedList[int]()
+
+	uat.AddFirst(1)
+	uat.AddFirst(2)
+
+	assert.Equal(t, 1, *uat.Get(1))
+	assert.Equal(t, 2, *uat.Get(0))
+}
+func TestLinkedList_AddLast(t *testing.T) {
+	uat := NewLinkedList[int]()
+
+	uat.AddLast(1)
+	uat.AddLast(2)
+
+	assert.Equal(t, 1, *uat.Get(0))
+	assert.Equal(t, 2, *uat.Get(1))
+}
+
+func TestLinkedList_DeleteFirstMatching(t *testing.T) {
+	uat := NewLinkedList[int]()
+	uat.AddLast(1)
+	uat.AddLast(2)
+	uat.AddLast(3)
+	uat.AddLast(4)
+
+	uat.DeleteFirstMatching(func(x int) bool {
+		return x == 3
+	})
+
+	assert.Equal(t, uint64(3), uat.size)
+	assert.Equal(t, 1, *uat.Get(0))
+	assert.Equal(t, 2, *uat.Get(1))
+	assert.Equal(t, 4, *uat.Get(2))
+}
+
+type TestStruct struct {
+	key   int
+	value string
+}
+
+func TestLinkedList_FindFirst(t *testing.T) {
+	uat := NewLinkedList[TestStruct]()
+	uat.AddLast(TestStruct{
+		key:   1,
+		value: "Test1",
+	})
+	uat.AddLast(TestStruct{
+		key:   1,
+		value: "Test2",
+	})
+
+	value := uat.FindFirst(func(x TestStruct) bool {
+		return x.key == 1
+	})
+
+	assert.Equal(t, "Test1", value.value)
+}
+
+func TestLinkedList_AnyMatchEmptyList(t *testing.T) {
+	uat := NewLinkedList[int]()
+
+	assert.False(t, uat.AllMatch(func(x int) bool {
+		return x == 5
+	}))
+}
+
+func TestLinkedList_AnyMatchFalse(t *testing.T) {
+	uat := NewLinkedList[int]()
+
+	uat.AddLast(1)
+	uat.AddLast(2)
+	uat.AddLast(3)
+
+	assert.False(t, uat.AllMatch(func(x int) bool {
+		return x == 5
+	}))
+}
+
+func TestLinkedList_AnyMatchTrue(t *testing.T) {
+	uat := NewLinkedList[int]()
+
+	uat.AddLast(1)
+	uat.AddLast(5)
+	uat.AddLast(3)
+
+	assert.False(t, uat.AllMatch(func(x int) bool {
+		return x == 5
+	}))
+}
+
+func TestLinkedList_AllMatchEmptyList(t *testing.T) {
+	uat := NewLinkedList[int]()
+
+	assert.False(t, uat.AllMatch(func(x int) bool {
+		return x == 5
+	}))
+}
+
+func TestLinkedList_AllMatchFalse(t *testing.T) {
+	uat := NewLinkedList[int]()
+
+	uat.AddLast(1)
+	uat.AddLast(5)
+	uat.AddLast(3)
+
+	assert.False(t, uat.AllMatch(func(x int) bool {
+		return x == 5
+	}))
+}
+func TestLinkedList_AllMatchTrue(t *testing.T) {
+	uat := NewLinkedList[int]()
+
+	uat.AddLast(5)
+	uat.AddLast(5)
+	uat.AddLast(5)
+
+	assert.True(t, uat.AllMatch(func(x int) bool {
+		return x == 5
+	}))
+}

@@ -133,3 +133,127 @@ func (lst *DoublyLinkedList[T]) GetFirst() *T {
 		return &lst.head.value
 	}
 }
+
+type linkedListNode[T any] struct {
+	next  *linkedListNode[T]
+	value T
+}
+
+type LinkedList[T any] struct {
+	head, tail *linkedListNode[T]
+	size       uint64
+}
+
+func NewLinkedList[T any]() LinkedList[T] {
+	return LinkedList[T]{
+		size: 0,
+		head: nil,
+		tail: nil,
+	}
+}
+
+func (lst *LinkedList[T]) addFirstElement(value T) {
+	node := &linkedListNode[T]{
+		value: value,
+	}
+	lst.head = node
+	lst.tail = node
+	lst.size = 1
+}
+
+func (lst *LinkedList[T]) AddLast(value T) {
+	if lst.head == nil && lst.tail == nil {
+		lst.addFirstElement(value)
+	} else {
+		node := &linkedListNode[T]{
+			value: value,
+		}
+		lst.tail.next = node
+		lst.tail = node
+		lst.size++
+	}
+}
+
+func (lst *LinkedList[T]) AddFirst(value T) {
+	if lst.head == nil && lst.tail == nil {
+		lst.addFirstElement(value)
+	} else {
+		node := &linkedListNode[T]{
+			value: value,
+			next:  lst.head,
+		}
+		lst.head = node
+		lst.size++
+	}
+}
+
+func (lst *LinkedList[T]) DeleteFirstMatching(predicate func(T) bool) {
+	if lst.head != nil {
+		iterator := lst.head
+		if predicate(iterator.value) {
+			lst.head = iterator.next
+			lst.size--
+		} else {
+			for iterator.next != nil {
+				if predicate(iterator.next.value) {
+					iterator.next = iterator.next.next
+					lst.size--
+					break
+				}
+				iterator = iterator.next
+			}
+		}
+	}
+}
+
+func (lst *LinkedList[T]) FindFirst(predicate func(T) bool) *T {
+	if lst.head != nil {
+		iterator := lst.head
+		for iterator != nil {
+			if predicate(iterator.value) {
+				return &iterator.value
+			}
+			iterator = iterator.next
+		}
+	}
+	return nil
+}
+
+func (lst *LinkedList[T]) AnyMatch(predicate func(T) bool) bool {
+	if lst.head != nil {
+		iterator := lst.head
+		for iterator != nil {
+			if predicate(iterator.value) {
+				return true
+			}
+			iterator = iterator.next
+		}
+	}
+	return false
+}
+
+func (lst *LinkedList[T]) AllMatch(predicate func(T) bool) bool {
+	if lst.head != nil {
+		iterator := lst.head
+		for iterator != nil {
+			if !predicate(iterator.value) {
+				return false
+			}
+			iterator = iterator.next
+		}
+		return true
+	} else {
+		return false
+	}
+}
+
+func (lst *LinkedList[T]) Get(index uint64) *T {
+	if index >= lst.size {
+		return nil
+	}
+	iterator := lst.head
+	for idx := uint64(0); idx < index; idx++ {
+		iterator = iterator.next
+	}
+	return &iterator.value
+}
