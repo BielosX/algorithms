@@ -208,3 +208,28 @@ func TestLinkedList_AllMatchTrue(t *testing.T) {
 		return x == 5
 	}))
 }
+
+func TestLinkedListIterator_Empty(t *testing.T) {
+	lst := NewLinkedList[int]()
+	uat := lst.Iterator()
+
+	assert.Empty(t, uat.GetNext())
+	assert.False(t, uat.HasNext())
+}
+
+func TestLinkedListIterator_ReturnsValuesInOrder(t *testing.T) {
+	lst := NewLinkedList[int]()
+
+	lst.AddLast(1)
+	lst.AddLast(2)
+	lst.AddLast(3)
+
+	uat := lst.Iterator()
+
+	assert.True(t, uat.HasNext())
+	assert.Equal(t, 1, *uat.GetNext())
+	assert.True(t, uat.HasNext())
+	assert.Equal(t, 2, *uat.GetNext())
+	assert.True(t, uat.HasNext())
+	assert.Equal(t, 3, *uat.GetNext())
+}

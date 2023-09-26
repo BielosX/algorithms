@@ -1,6 +1,7 @@
 package _map
 
 import (
+	"algorithms/list"
 	"cmp"
 	"encoding/binary"
 	"hash/maphash"
@@ -207,7 +208,7 @@ type hashMapEntry[K Hashable, V any] struct {
 }
 
 type hashMapBucket[K Hashable, V any] struct {
-	entries []hashMapEntry[K, V]
+	entries list.LinkedList[hashMapEntry[K, V]]
 }
 
 type HashMap[K Hashable, V any] struct {
@@ -232,7 +233,7 @@ func (hashMap *HashMap[K, V]) GetBucketsNumber() int {
 func (hashMap *HashMap[K, V]) usedBuckets() int {
 	counter := 0
 	for _, item := range hashMap.buckets {
-		if len(item.entries) > 0 {
+		if item.entries.GetSize() > 0 {
 			counter++
 		}
 	}
@@ -243,12 +244,11 @@ func (hashMap *HashMap[K, V]) calculateNewBuckets() {
 	newBucketsNumber := hashMap.GetBucketsNumber() << 1
 	newBuckets := make([]hashMapBucket[K, V], newBucketsNumber)
 	for _, bucket := range hashMap.buckets {
-		for _, bucketEntry := range bucket.entries {
+		iterator := bucket.entries.Iterator()
+		for iterator.HasNext() {
+			bucketEntry := iterator.GetNext()
 			newIndex := bucketEntry.key.Hash() % uint64(newBucketsNumber)
-			newSlice := append(newBuckets[newIndex].entries, bucketEntry)
-			newBuckets[newIndex] = hashMapBucket[K, V]{
-				entries: newSlice,
-			}
+			newBuckets[newIndex].entries.AddLast(*bucketEntry)
 		}
 	}
 	hashMap.buckets = newBuckets
@@ -260,10 +260,7 @@ func (hashMap *HashMap[K, V]) Insert(key K, value V) {
 		key:   key,
 		value: value,
 	}
-	slice := append(hashMap.buckets[index].entries, entry)
-	hashMap.buckets[index] = hashMapBucket[K, V]{
-		entries: slice,
-	}
+	hashMap.buckets[index].entries.AddLast(entry)
 	if hashMap.usedBuckets() == hashMap.GetBucketsNumber() {
 		hashMap.calculateNewBuckets()
 	}
@@ -272,7 +269,9 @@ func (hashMap *HashMap[K, V]) Insert(key K, value V) {
 func (hashMap *HashMap[K, V]) Get(key K) *V {
 	index := key.Hash() % uint64(hashMap.GetBucketsNumber())
 	entries := hashMap.buckets[index].entries
-	for _, item := range entries {
+	iterator := entries.Iterator()
+	for iterator.HasNext() {
+		item := iterator.GetNext()
 		if item.key == key {
 			return &item.value
 		}

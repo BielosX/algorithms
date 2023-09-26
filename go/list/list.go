@@ -257,3 +257,33 @@ func (lst *LinkedList[T]) Get(index uint64) *T {
 	}
 	return &iterator.value
 }
+
+type LinkedListIterator[T any] struct {
+	current *linkedListNode[T]
+}
+
+func (lst *LinkedList[T]) Iterator() LinkedListIterator[T] {
+	return LinkedListIterator[T]{
+		current: lst.head,
+	}
+}
+
+func (lst *LinkedList[T]) GetSize() uint64 {
+	return lst.size
+}
+
+func (iter *LinkedListIterator[T]) HasNext() bool {
+	if iter.current != nil {
+		return true
+	}
+	return false
+}
+
+func (iter *LinkedListIterator[T]) GetNext() *T {
+	if iter.current != nil {
+		value := &iter.current.value
+		iter.current = iter.current.next
+		return value
+	}
+	return nil
+}
