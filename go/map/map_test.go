@@ -75,3 +75,27 @@ func TestHashMapIncreaseNumberOfBucketsWhenAllUsed(t *testing.T) {
 	assert.Equal(t, 7, *uat.Get(firstKey))
 	assert.Equal(t, 8, *uat.Get(secondKey))
 }
+
+func TestHashMap_DeleteInsertedItem(t *testing.T) {
+	uat := NewHashMap[HashableInt, int]()
+	uat.Insert(5, 7)
+
+	uat.Delete(5)
+
+	assert.Empty(t, uat.Get(5))
+}
+
+func TestHashMap_DeleteRecalculateBucketsWhenLessThanHalfUsed(t *testing.T) {
+	uat := NewHashMapWithBucketsNumber[TestHashableInt, int](4)
+	firstKey := NewTestHashableInt(5, 0)
+	secondKey := NewTestHashableInt(4, 1)
+	thirdKey := NewTestHashableInt(3, 2)
+	uat.Insert(firstKey, 7)
+	uat.Insert(secondKey, 8)
+	uat.Insert(thirdKey, 9)
+
+	uat.Delete(firstKey)
+	uat.Delete(secondKey)
+
+	assert.Equal(t, 2, uat.GetBucketsNumber())
+}

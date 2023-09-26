@@ -193,7 +193,7 @@ type Hashable interface {
 var seed = maphash.MakeSeed()
 
 func (h HashableInt) Hash() uint64 {
-	var buffer []byte
+	buffer := make([]byte, 8)
 	binary.LittleEndian.PutUint64(buffer, uint64(h))
 	return maphash.Bytes(seed, buffer)
 }
@@ -240,14 +240,13 @@ func (hashMap *HashMap[K, V]) usedBuckets() int {
 	return counter
 }
 
-func (hashMap *HashMap[K, V]) calculateNewBuckets() {
-	newBucketsNumber := hashMap.GetBucketsNumber() << 1
-	newBuckets := make([]hashMapBucket[K, V], newBucketsNumber)
+func (hashMap *HashMap[K, V]) calculateNewBuckets(newSize int) {
+	newBuckets := make([]hashMapBucket[K, V], newSize)
 	for _, bucket := range hashMap.buckets {
 		iterator := bucket.entries.Iterator()
 		for iterator.HasNext() {
 			bucketEntry := iterator.GetNext()
-			newIndex := bucketEntry.key.Hash() % uint64(newBucketsNumber)
+			newIndex := bucketEntry.key.Hash() % uint64(newSize)
 			newBuckets[newIndex].entries.AddLast(*bucketEntry)
 		}
 	}
@@ -262,13 +261,14 @@ func (hashMap *HashMap[K, V]) Insert(key K, value V) {
 	}
 	hashMap.buckets[index].entries.AddLast(entry)
 	if hashMap.usedBuckets() == hashMap.GetBucketsNumber() {
-		hashMap.calculateNewBuckets()
+		newBucketsNumber := hashMap.GetBucketsNumber() << 1
+		hashMap.calculateNewBuckets(newBucketsNumber)
 	}
 }
 
 func (hashMap *HashMap[K, V]) Get(key K) *V {
 	index := key.Hash() % uint64(hashMap.GetBucketsNumber())
-	entries := hashMap.buckets[index].entries
+	entries := &hashMap.buckets[index].entries
 	iterator := entries.Iterator()
 	for iterator.HasNext() {
 		item := iterator.GetNext()
@@ -281,4 +281,16 @@ func (hashMap *HashMap[K, V]) Get(key K) *V {
 
 func (hashMap *HashMap[K, V]) Contains(key K) bool {
 	return hashMap.Get(key) != nil
+}
+
+func (hashMap *HashMap[K, V]) Delete(key K) {
+	index := key.Hash() % uint64(hashMap.GetBucketsNumber())
+	entries := &hashMap.buckets[index].entries
+	entries.DeleteFirstMatching(func(entry hashMapEntry[K, V]) bool {
+		return entry.key == key
+	})
+	if len(hashMap.buckets) > 2 && hashMap.usedBuckets() < (hashMap.GetBucketsNumber()>>1) {
+		newBucketsNumber := hashMap.GetBucketsNumber() >> 1
+		hashMap.calculateNewBuckets(newBucketsNumber)
+	}
 }

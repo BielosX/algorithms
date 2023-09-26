@@ -191,11 +191,17 @@ func (lst *LinkedList[T]) DeleteFirstMatching(predicate func(T) bool) {
 	if lst.head != nil {
 		iterator := lst.head
 		if predicate(iterator.value) {
+			if iterator == lst.tail {
+				lst.tail = nil
+			}
 			lst.head = iterator.next
 			lst.size--
 		} else {
 			for iterator.next != nil {
 				if predicate(iterator.next.value) {
+					if iterator.next == lst.tail {
+						lst.tail = iterator
+					}
 					iterator.next = iterator.next.next
 					lst.size--
 					break
