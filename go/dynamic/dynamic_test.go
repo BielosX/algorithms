@@ -24,3 +24,41 @@ func TestFibonacci(t *testing.T) {
 		})
 	}
 }
+
+func TestCutRod_PriceArrayTooSmall(t *testing.T) {
+	_, _, err := CutRodTopDown([]int{1, 2}, 5)
+
+	assert.Error(t, err, "price array length should be at least rodLength + 1")
+}
+
+type cutRodTestCase struct {
+	rodLength   int
+	result      int
+	optimalCuts []int
+}
+
+func TestCutRod(t *testing.T) {
+	price := []int{0, 1, 5, 8, 9, 10, 17, 17, 20, 24, 30}
+	testCases := []cutRodTestCase{
+		{1, 1, []int{1}},
+		{2, 5, []int{2}},
+		{3, 8, []int{3}},
+		{4, 10, []int{2, 2}},
+		{5, 13, []int{2, 3}},
+		{6, 17, []int{6}},
+		{7, 18, []int{1, 6}},
+		{8, 22, []int{2, 6}},
+		{9, 25, []int{3, 6}},
+		{10, 30, []int{10}},
+	}
+	for _, tc := range testCases {
+		t.Run(fmt.Sprintf("CutRod of %d", tc.rodLength), func(tst *testing.T) {
+			result, cuts, _ := CutRodTopDown(price, tc.rodLength)
+			assert.Equal(tst, tc.result, result)
+			assert.ElementsMatch(tst, tc.optimalCuts, cuts)
+			result, cuts, _ = CutRodBottomUp(price, tc.rodLength)
+			assert.Equal(tst, tc.result, result)
+			assert.ElementsMatch(tst, tc.optimalCuts, cuts)
+		})
+	}
+}
