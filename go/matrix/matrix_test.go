@@ -72,3 +72,56 @@ func TestMatrix_Multiply(t *testing.T) {
 	assert.Equal(t, 47, *result.Get(1, 0))
 	assert.Equal(t, 15, *result.Get(1, 1))
 }
+
+func TestMultiplyMatrices_NoMatrixProvided(t *testing.T) {
+	_, err := MultiplyMatrices[int]()
+
+	assert.Error(t, err, "no matrix provided")
+}
+
+func TestMultiplyMatrices_SingleMatrixProvided(t *testing.T) {
+	matrix, _ := NewMatrixFromArray([][]int{
+		{1, 2, 3},
+		{4, 5, 6},
+	})
+
+	result, _ := MultiplyMatrices(*matrix)
+	assert.Equal(t, result, matrix)
+}
+
+func TestMultiplyMatrices_SizeDoesNotMatch(t *testing.T) {
+	first, _ := NewMatrixFromArray([][]int{
+		{1, 2, 3},
+		{4, 5, 6},
+	})
+	second, _ := NewMatrixFromArray([][]int{
+		{2, 1},
+		{3, 1},
+	})
+
+	_, err := MultiplyMatrices(*first, *second)
+	assert.Error(t, err, "matrix size does not match")
+}
+
+func TestMultiplyMatrices(t *testing.T) {
+	first, _ := NewMatrixFromArray([][]int{
+		{1, 2, 3},
+		{4, 5, 6},
+	})
+	second, _ := NewMatrixFromArray([][]int{
+		{2, 1},
+		{3, 1},
+		{4, 1},
+	})
+	third, _ := NewMatrixFromArray([][]int{
+		{1, 2, 3},
+		{4, 5, 6},
+	})
+	expected, _ := NewMatrixFromArray([][]int{
+		{44, 70, 96},
+		{107, 169, 231},
+	})
+
+	result, _ := MultiplyMatrices(*first, *second, *third)
+	assert.Equal(t, expected, result)
+}

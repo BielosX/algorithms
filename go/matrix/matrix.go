@@ -1,6 +1,7 @@
 package matrix
 
 import (
+	"algorithms/dynamic"
 	"errors"
 	"golang.org/x/exp/constraints"
 	"runtime"
@@ -116,5 +117,46 @@ func (matrix *Matrix[T]) Multiply(rhs *Matrix[T]) (*Matrix[T], error) {
 		entry := result.Get(partialResult.lhsRow, partialResult.rhsColumn)
 		*entry = partialResult.result
 	}
+	return result, nil
+}
+
+func multiplyMatrices[T Number](ranges [][]int, matrices []Matrix[T], index int) *Matrix[T] {
+	mulRange := ranges[index]
+	from := mulRange[0] - 1
+	to := mulRange[1] - 1
+	if from == to {
+		return &matrices[from]
+	}
+	left := multiplyMatrices(ranges, matrices, (index<<1)+1)
+	right := multiplyMatrices(ranges, matrices, (index<<1)+2)
+	result, _ := left.Multiply(right)
+	return result
+}
+
+func MultiplyMatrices[T Number](matrices ...Matrix[T]) (*Matrix[T], error) {
+	numberOfMatrices := len(matrices)
+	if numberOfMatrices == 0 {
+		return nil, errors.New("no matrix provided")
+	}
+	if numberOfMatrices == 1 {
+		return &matrices[0], nil
+	}
+	var sizes []int
+	var prevColumn int
+	for i := 0; i < numberOfMatrices; i++ {
+		matrix := &matrices[i]
+		if i == 0 {
+			sizes = append(sizes, matrix.GetRows(), matrix.GetColumns())
+			prevColumn = matrix.GetColumns()
+		} else {
+			if matrix.GetRows() != prevColumn {
+				return nil, errors.New("matrix size does not match")
+			}
+			sizes = append(sizes, matrix.GetColumns())
+			prevColumn = matrix.GetColumns()
+		}
+	}
+	_, ranges := dynamic.MatrixMultiplicationBottomUp(sizes)
+	result := multiplyMatrices(ranges, matrices, 0)
 	return result, nil
 }

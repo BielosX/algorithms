@@ -122,20 +122,19 @@ func MatrixMultiplicationBottomUp(sizes []int) (int, [][]int) {
 	}
 
 	var ranges [][]int
-	matrixMultiplicationReconstruct(dividers, 1, numberOfMatrices, &ranges)
+	matrixMultiplicationReconstruct(dividers, 1, numberOfMatrices, &ranges, true)
 	return results[1][numberOfMatrices], ranges
 }
 
-func matrixMultiplicationReconstruct(dividers [][]int, from int, to int, ranges *[][]int) {
+func matrixMultiplicationReconstruct(dividers [][]int, from int, to int, ranges *[][]int, root bool) {
+	if root {
+		*ranges = append(*ranges, []int{from, to})
+	}
 	if from != to {
 		divider := dividers[from][to]
-		if divider != from {
-			*ranges = append(*ranges, []int{from, divider})
-		}
-		if divider+1 != to {
-			*ranges = append(*ranges, []int{divider + 1, to})
-		}
-		matrixMultiplicationReconstruct(dividers, from, divider, ranges)
-		matrixMultiplicationReconstruct(dividers, divider+1, to, ranges)
+		*ranges = append(*ranges, []int{from, divider})
+		*ranges = append(*ranges, []int{divider + 1, to})
+		matrixMultiplicationReconstruct(dividers, from, divider, ranges, false)
+		matrixMultiplicationReconstruct(dividers, divider+1, to, ranges, false)
 	}
 }

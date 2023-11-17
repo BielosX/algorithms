@@ -70,9 +70,16 @@ func TestMatrixMultiplicationBottomUp(t *testing.T) {
 
 	assert.Equal(t, 2010, multiplications)
 	assert.Equal(t, ranges, [][]int{
+		{1, 6},
 		{1, 2},
 		{3, 6},
+		{1, 1},
+		{2, 2},
 		{3, 4},
 		{5, 6},
+		{3, 3},
+		{4, 4},
+		{5, 5},
+		{6, 6},
 	})
 }
