@@ -126,6 +126,44 @@ func MatrixMultiplicationBottomUp(sizes []int) (int, [][]int) {
 	return results[1][numberOfMatrices], ranges
 }
 
+func MatrixMultiplicationTopDown(sizes []int) (int, [][]int) {
+	numberOfMatrices := len(sizes) - 1
+	results := make([][]int, numberOfMatrices+1)
+	dividers := make([][]int, numberOfMatrices+1)
+	for i := 0; i <= numberOfMatrices; i++ {
+		size := numberOfMatrices + 1
+		results[i] = make([]int, size)
+		for j := 0; j < size; j++ {
+			results[i][j] = math.MaxInt
+		}
+		dividers[i] = make([]int, size)
+	}
+	result := matrixMultiplicationTopDown(sizes, 1, numberOfMatrices, results, dividers)
+	var ranges [][]int
+	matrixMultiplicationReconstruct(dividers, 1, numberOfMatrices, &ranges, true)
+	return result, ranges
+}
+
+func matrixMultiplicationTopDown(sizes []int, from int, to int, savedResults [][]int, savedDividers [][]int) int {
+	if from == to {
+		return 0
+	}
+	if savedResults[from][to] < math.MaxInt {
+		return savedResults[from][to]
+	}
+	for divider := from; divider < to; divider++ {
+		multiplicationCost := sizes[from-1] * sizes[divider] * sizes[to]
+		left := matrixMultiplicationTopDown(sizes, from, divider, savedResults, savedDividers)
+		right := matrixMultiplicationTopDown(sizes, divider+1, to, savedResults, savedDividers)
+		result := left + right + multiplicationCost
+		if result < savedResults[from][to] {
+			savedResults[from][to] = result
+			savedDividers[from][to] = divider
+		}
+	}
+	return savedResults[from][to]
+}
+
 func matrixMultiplicationReconstruct(dividers [][]int, from int, to int, ranges *[][]int, root bool) {
 	if root {
 		*ranges = append(*ranges, []int{from, to})

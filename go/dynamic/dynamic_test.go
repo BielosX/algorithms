@@ -63,13 +63,10 @@ func TestCutRod(t *testing.T) {
 	}
 }
 
-func TestMatrixMultiplicationBottomUp(t *testing.T) {
+func TestMatrixMultiplication(t *testing.T) {
 	sizes := []int{5, 10, 3, 12, 5, 50, 6}
-
-	multiplications, ranges := MatrixMultiplicationBottomUp(sizes)
-
-	assert.Equal(t, 2010, multiplications)
-	assert.Equal(t, ranges, [][]int{
+	expectedResult := 2010
+	expectedDividers := [][]int{
 		{1, 6},
 		{1, 2},
 		{3, 6},
@@ -81,5 +78,15 @@ func TestMatrixMultiplicationBottomUp(t *testing.T) {
 		{4, 4},
 		{5, 5},
 		{6, 6},
-	})
+	}
+
+	multiplications, ranges := MatrixMultiplicationBottomUp(sizes)
+
+	assert.Equal(t, expectedResult, multiplications)
+	assert.Equal(t, ranges, expectedDividers)
+
+	multiplications, ranges = MatrixMultiplicationTopDown(sizes)
+
+	assert.Equal(t, expectedResult, multiplications)
+	assert.Equal(t, ranges, expectedDividers)
 }
