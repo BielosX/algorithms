@@ -6,6 +6,10 @@ jdk-url := "https://corretto.aws/downloads/latest/amazon-corretto-" + java-versi
 java-home := "jdk/amazon-corretto-" + java-version + ".jdk/Contents/Home"
 lombok-version := "1.18.30"
 lombok-url := "https://projectlombok.org/downloads/lombok-" + lombok-version + ".jar"
+nursery-heap-size := "1024m"
+initial-heap-size := "1024m"
+max-heap-size := "1024m"
+thread-stack-size := "4096k"
 manifest := """
     Manifest-Version: 1.0
     Created-By: 21
@@ -43,7 +47,11 @@ package: build
     pushd target && zip -ur libs/{{out-name}} META-INF && popd
 
 run: package
-    {{java-home}}/bin/java -jar target/libs/{{out-name}}
+    {{java-home}}/bin/java -jar target/libs/{{out-name}} \
+        -Xmn{{nursery-heap-size}} \
+        -Xms{{initial-heap-size}} \
+        -Xmx{{max-heap-size}} \
+        -Xss{{thread-stack-size}}
 
 clean:
     rm -rf target
