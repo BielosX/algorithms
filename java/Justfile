@@ -4,6 +4,8 @@ platform := "macos"
 out-name := "algorithms.jar"
 jdk-url := "https://corretto.aws/downloads/latest/amazon-corretto-" + java-version + "-" + arch + "-" + platform + "-jdk.tar.gz"
 java-home := "jdk/amazon-corretto-" + java-version + ".jdk/Contents/Home"
+lombok-version := "1.18.30"
+lombok-url := "https://projectlombok.org/downloads/lombok-" + lombok-version + ".jar"
 manifest := """
     Manifest-Version: 1.0
     Created-By: 21
@@ -20,9 +22,18 @@ download-jdk:
       popd || exit; \
     fi
 
-build: download-jdk
+download-lombok:
+    if [ ! -f "target/dependencies/lombok.jar" ]; then \
+      mkdir -p target/dependencies; \
+      wget -O target/dependencies/lombok.jar "{{lombok-url}}"; \
+    fi
+
+build: download-jdk download-lombok
     mkdir -p target
-    {{java-home}}/bin/javac -d target/classes $(find src -name "*.java")
+    {{java-home}}/bin/javac -proc:full \
+      -cp target/dependencies/lombok.jar \
+      -d target/classes \
+      $(find src -name "*.java")
 
 package: build
     mkdir -p target/META-INF
