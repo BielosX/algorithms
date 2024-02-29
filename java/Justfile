@@ -1,0 +1,41 @@
+java-version := "21"
+arch := "aarch64"
+platform := "macos"
+out-name := "algorithms.jar"
+jdk-url := "https://corretto.aws/downloads/latest/amazon-corretto-" + java-version + "-" + arch + "-" + platform + "-jdk.tar.gz"
+java-home := "jdk/amazon-corretto-" + java-version + ".jdk/Contents/Home"
+manifest := """
+    Manifest-Version: 1.0
+    Created-By: 21
+    Main-Class: org.algorithms.Main
+"""
+
+download-jdk:
+    if [ ! -d "jdk" ]; then \
+      mkdir jdk; \
+      wget -O jdk/jdk-corretto.tar.gz "{{jdk-url}}"; \
+      pushd jdk || exit; \
+      tar -xf jdk-corretto.tar.gz; \
+      rm jdk-corretto.tar.gz; \
+      popd || exit; \
+    fi
+
+build: download-jdk
+    mkdir -p target
+    {{java-home}}/bin/javac -d target/classes $(find src -name "*.java")
+
+package: build
+    mkdir -p target/META-INF
+    mkdir -p target/libs
+    echo "{{manifest}}" > target/META-INF/MANIFEST.MF
+    pushd target/classes && zip -r ../libs/{{out-name}} . && popd
+    pushd target && zip -ur libs/{{out-name}} META-INF && popd
+
+run: package
+    {{java-home}}/bin/java -jar target/libs/{{out-name}}
+
+clean:
+    rm -rf target
+
+remove-jdk:
+    rm -rf jdk
