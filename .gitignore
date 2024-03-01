@@ -1,3 +1,5 @@
 .idea
 jdk
 target
+groovy
+lib

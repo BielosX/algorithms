@@ -1,6 +1,7 @@
 package org.algorithms.list;
 
 import java.util.function.Consumer;
+import java.util.Optional;
 
 public class ArrayList<T> {
   private T[] values;
@@ -47,6 +48,13 @@ public class ArrayList<T> {
       this.size = newSize;
       this.allocated = newAllocated;
     }
+  }
+
+  public Optional<T> get(int index) {
+    if (index > this.size - 1) {
+      return Optional.empty();
+    }
+    return Optional.of(this.values[index]);
   }
 
   public void forEach(Consumer<T> consumer) {

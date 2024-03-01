@@ -6,6 +6,10 @@ jdk-url := "https://corretto.aws/downloads/latest/amazon-corretto-" + java-versi
 java-home := "jdk/amazon-corretto-" + java-version + ".jdk/Contents/Home"
 lombok-version := "1.18.30"
 lombok-url := "https://projectlombok.org/downloads/lombok-" + lombok-version + ".jar"
+junit-launcher-version := "1.10.2"
+junit-launcher-url := "https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/" + junit-launcher-version + "/junit-platform-console-standalone-" + junit-launcher-version + ".jar"
+junit-version := "5.10.2"
+junit-url := "https://repo1.maven.org/maven2/org/junit/jupiter/junit-jupiter-api/" + junit-version + "/junit-jupiter-api-" + junit-version + ".jar"
 nursery-heap-size := "1024m"
 initial-heap-size := "1024m"
 max-heap-size := "1024m"
@@ -37,7 +41,7 @@ build: download-jdk download-lombok
     {{java-home}}/bin/javac -proc:full \
       -cp target/dependencies/lombok.jar \
       -d target/classes \
-      $(find src -name "*.java")
+      $(find "src/main" -name "*.java")
 
 package: build
     mkdir -p target/META-INF
@@ -52,6 +56,29 @@ run: package
         -Xms{{initial-heap-size}} \
         -Xmx{{max-heap-size}} \
         -Xss{{thread-stack-size}}
+
+download-junit-launcher:
+    if [ ! -f "target/dependencies/junit-launcher.jar" ]; then \
+      mkdir -p target/dependencies; \
+      wget -O target/dependencies/junit-launcher.jar "{{junit-launcher-url}}"; \
+    fi
+
+download-junit:
+    if [ ! -f "target/dependencies/junit.jar" ]; then \
+      mkdir -p target/dependencies; \
+      wget -O target/dependencies/junit.jar "{{junit-url}}"; \
+    fi
+
+build-test: download-junit build
+    {{java-home}}/bin/javac -cp "target/dependencies/junit.jar:target/classes" \
+        -Xlint:none \
+        -d target/testClasses \
+        $(find "src/test" -name "*.java")
+
+test: build-test download-junit-launcher
+    {{java-home}}/bin/java -jar target/dependencies/junit-launcher.jar execute \
+        -cp "target/classes:target/testClasses" \
+        --scan-class-path="target/testClasses"
 
 clean:
     rm -rf target
