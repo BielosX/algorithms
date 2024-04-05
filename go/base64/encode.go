@@ -33,14 +33,14 @@ func Base64encode(bytes []byte) []byte {
 	return result
 }
 
-var mapping = [...]byte{25, 'A', 51, 'a', 61, '0', 62, '+', 63, '/'}
+var valueToChar = [...]byte{25, 'A', 51, 'a', 61, '0', 62, '+', 63, '/'}
 
 func mapValueToBase64(value byte) byte {
 	var firstValue byte = 0
 	var result byte = 0
-	for idx := 0; idx < len(mapping); idx += 2 {
-		lastValue := mapping[idx]
-		firstSymbol := mapping[idx+1]
+	for idx := 0; idx < len(valueToChar); idx += 2 {
+		lastValue := valueToChar[idx]
+		firstSymbol := valueToChar[idx+1]
 		if value <= lastValue {
 			offset := value - firstValue
 			result = firstSymbol + offset
